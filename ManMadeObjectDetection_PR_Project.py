@@ -1,0 +1,77 @@
+import cv2
+import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
+
+from scipy import fftpack
+
+def readImage(image_name):
+    image = Image.open(image_name)
+    return image
+##
+
+def fft(channel):
+    fft = np.fft.fft2(channel)
+    fshift = np.fft.fftshift(fft)
+    
+    magnitude_spectrum = 20*np.log(np.abs(fshift))
+    return magnitude_spectrum
+##
+
+def cart2pol(input):
+    
+    binary = np.zeros((len(input),len(input[1])))
+    thrsh = 220
+    print(input[5,5])
+    for i in range (0,len(input)):
+        for j in range (0,len(input[0])):
+            if (input[i,j] > thrsh):
+                binary[i,j] = input[i,j]
+    ##
+    print(binary[5,5])
+    
+    #Coodrinate origin
+    x0 = int(len(input[0])/2)
+    y0 = int(len(input[1])/2)
+    
+ #   for i in range value (0,len(input[0])):
+ #       for j in range (0,len(input[1])):
+ #           if (binary{i,j}==1):
+ #               angle=math.degrees(math.atan2(y0-j,x0-i)))
+        
+    
+    return binary
+##
+
+# def image2array(img):
+    # return np.array(img.getdata(), np.uint8).reshape(img.size[1], img.size[0], 3)
+# ##
+
+def DEV_drawGui(original_image, result_image):
+    plt.subplot(121),plt.imshow(original_image, cmap = 'gray')
+    plt.title('Input Image'), plt.xticks([]), plt.yticks([])
+    plt.subplot(122),plt.imshow(result_image, cmap = 'gray')
+    plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+    plt.show()
+    return 1
+##
+
+def main():
+    image_name = "house.png"
+    original_image = readImage(image_name)
+    channels = original_image.split()
+    
+    result_array = np.zeros_like(original_image)
+    
+    gray_img = cv2.cvtColor(np.array(original_image), cv2.COLOR_BGR2GRAY)
+    result_array = fft(gray_img)
+    result_image = Image.fromarray(result_array)
+        
+    binary_image = Image.fromarray(cart2pol(result_array))
+    
+    DEV_drawGui(original_image, binary_image)
+    
+    return 1
+##
+
+main()
