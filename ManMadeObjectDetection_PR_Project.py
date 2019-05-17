@@ -21,26 +21,36 @@ def fft(channel):
 def cart2pol(input):
     
     binary = np.zeros((len(input),len(input[1])))
+    binarySpect = np.zeros((len(input),len(input[1])))
+    #angle = np.zeros((len(input),len(input[1])))
+    angle = np.zeros((360,1))
     thrsh = 220
     print(input[5,5])
     for i in range (0,len(input)):
         for j in range (0,len(input[0])):
             if (input[i,j] > thrsh):
-                binary[i,j] = input[i,j]
+                binarySpect[i,j] = input[i,j]
+                binary[i,j] = 1
+                
     ##
-    print(binary[5,5])
     
+    #binary[5,5]=1
     #Coodrinate origin
-    x0 = int(len(input[0])/2)
-    y0 = int(len(input[1])/2)
+    x0 = int(len(input)/2)
+    y0 = int(len(input[0])/2)
+    print(x0)
+    print(y0)  
+    for i in range (0,len(input)):
+        for j in range (0,len(input[0])):
+            if (binary[i,j]==1):
+                ind=int(np.arctan2(y0-j,x0-i) * 180 / np.pi)+90
+                #print(ind)
+                angle[ind]=angle[ind]+1
     
- #   for i in range value (0,len(input[0])):
- #       for j in range (0,len(input[1])):
- #           if (binary{i,j}==1):
- #               angle=math.degrees(math.atan2(y0-j,x0-i)))
-        
-    
-    return binary
+    print(angle)
+    plt.plot(angle)
+    plt.show()
+    return binarySpect
 ##
 
 # def image2array(img):
