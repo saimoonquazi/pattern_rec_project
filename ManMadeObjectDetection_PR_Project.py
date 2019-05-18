@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[7]:
+# In[12]:
 
 
 import cv2
@@ -12,9 +12,10 @@ from scipy import fftpack
 from shutil import copyfile
 import time
 import os
+import csv
 
 
-# In[8]:
+# In[31]:
 
 
 
@@ -122,7 +123,7 @@ def DEV_drawGui(original_image, fft, result_image):
 ##
 
 
-# In[9]:
+# In[ ]:
 
 
 
@@ -158,10 +159,23 @@ def main():
         result_image = Image.fromarray(result_array)
         
         angles, binary_image = cart2pol(result_array)
-        filteredAngles = meanFilterHistogram(angles,7)
+        
+        filteredAngles = meanFilterHistogram(angles,7)  
+        label=np.array([0])
+    #print(label.shape)
+    #print(filteredAngles.T.shape)
     
+        feature_print=np.concatenate((label,np.ravel(filteredAngles)))
+        feature_print=feature_print.reshape((361,1))
     
-    
+        
+        
+        with open('features.csv', 'a') as csvFile:
+            writer = csv.writer(csvFile)
+#        writer.writerows(map(lambda x: [x], feature_print.T))
+            writer.writerows(feature_print.T)
+        csvFile.close()
+        
         plt.plot(angles)
         plt.show()
         plt.plot(filteredAngles)
