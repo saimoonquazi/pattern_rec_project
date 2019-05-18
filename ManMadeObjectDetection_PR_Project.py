@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
-
 from scipy import fftpack
 
 def readImage(image_name):
@@ -15,17 +14,43 @@ def fft(channel):
     fshift = np.fft.fftshift(fft)
     
     magnitude_spectrum = 20*np.log(np.abs(fshift))
+    
+    magnitude_spectrum = highPassFilter(magnitude_spectrum)
     return magnitude_spectrum
+##
+
+def highPassFilter(input):
+    output = np.zeros((len(input),len(input[0])))
+    
+    rows, cols = len(input), len(input[0])
+    center_row, center_col = rows/2, cols/2
+    sigma = 30
+    
+    mask_circle = np.ones((rows,cols), np.uint8)
+
+    for i in range (0,len(input)):
+        for j in range (0,len(input[0])):
+            
+            distance = np.sqrt((center_row - i)**2 + (center_col - j)**2)
+            
+            if (distance < sigma):
+                mask_circle[i,j] = 0
+            ##
+    ##
+    
+    output= input*mask_circle
+    
+    return output
 ##
 
 def cart2pol(input):
     
-    binary = np.zeros((len(input),len(input[1])))
-    binarySpect = np.zeros((len(input),len(input[1])))
-    #angle = np.zeros((len(input),len(input[1])))
+    binary = np.zeros((len(input),len(input[0])))
+    binarySpect = np.zeros((len(input),len(input[0])))
+    
     angle = np.zeros((360,1))
     thrsh = 220
-    print(input[5,5])
+    
     for i in range (0,len(input)):
         for j in range (0,len(input[0])):
             if (input[i,j] > thrsh):
@@ -34,34 +59,38 @@ def cart2pol(input):
                 
     ##
     
-    #binary[5,5]=1
     #Coodrinate origin
     x0 = int(len(input)/2)
     y0 = int(len(input[0])/2)
-    print(x0)
-    print(y0)  
+    
     for i in range (0,len(input)):
         for j in range (0,len(input[0])):
             if (binary[i,j]==1):
                 ind=int(np.arctan2(y0-j,x0-i) * 180 / np.pi)+90
                 #print(ind)
                 angle[ind]=angle[ind]+1
+    ##
     
-    print(angle)
-    plt.plot(angle)
-    plt.show()
-    return binarySpect
+    return angle, binarySpect
 ##
 
-# def image2array(img):
-    # return np.array(img.getdata(), np.uint8).reshape(img.size[1], img.size[0], 3)
-# ##
+def meanFilterHistogram(input, kernel_size):
+    output = input.copy()
+    n = int(kernel_size/2)
+    for i in range (kernel_size,len(input)-kernel_size):
+        output[i] = (input[i-n:i+n].sum())/kernel_size 
+    ##
+    
+    return output
+##
 
-def DEV_drawGui(original_image, result_image):
-    plt.subplot(121),plt.imshow(original_image, cmap = 'gray')
+def DEV_drawGui(original_image, fft, result_image):
+    plt.subplot(131),plt.imshow(original_image, cmap = 'gray')
     plt.title('Input Image'), plt.xticks([]), plt.yticks([])
-    plt.subplot(122),plt.imshow(result_image, cmap = 'gray')
+    plt.subplot(132),plt.imshow(fft, cmap = 'gray')
     plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
+    plt.subplot(133),plt.imshow(result_image, cmap = 'gray')
+    plt.title('Filtered Spectrum'), plt.xticks([]), plt.yticks([])
     plt.show()
     return 1
 ##
@@ -76,10 +105,20 @@ def main():
     gray_img = cv2.cvtColor(np.array(original_image), cv2.COLOR_BGR2GRAY)
     result_array = fft(gray_img)
     result_image = Image.fromarray(result_array)
-        
-    binary_image = Image.fromarray(cart2pol(result_array))
     
-    DEV_drawGui(original_image, binary_image)
+    #binary_image = Image.fromarray(cart2pol(result_array))
+    
+    angles, binary_image = cart2pol(result_array)
+    filteredAngles = meanFilterHistogram(angles,7)
+    
+    
+    
+    plt.plot(angles)
+    plt.show()
+    plt.plot(filteredAngles)
+    plt.show()
+    
+    DEV_drawGui(original_image, result_image, Image.fromarray(binary_image))
     
     return 1
 ##
