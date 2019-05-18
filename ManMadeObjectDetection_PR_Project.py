@@ -23,13 +23,13 @@ def highPassFilter(input):
     output = np.zeros((len(input),len(input[0])))
     
     rows, cols = len(input), len(input[0])
-    center_row, center_col = rows/2, cols/2
-    sigma = 30
+    center_row, center_col = int(rows/2), int(cols/2)
+    sigma = 20
     
     mask_circle = np.ones((rows,cols), np.uint8)
 
-    for i in range (0,len(input)):
-        for j in range (0,len(input[0])):
+    for i in range (center_row-sigma,center_row+sigma):
+        for j in range (center_col-sigma,center_col+sigma):
             
             distance = np.sqrt((center_row - i)**2 + (center_col - j)**2)
             
@@ -37,6 +37,18 @@ def highPassFilter(input):
                 mask_circle[i,j] = 0
             ##
     ##
+
+##    a, b = center_row, center_col
+##    r = sigma
+##    n = r*2+1
+##
+##    x, y = np.ogrid[-a:n-a, -b:n-b]
+##    circle = x*x + y*y <= r*r
+##    circle=int(circle*255)
+##    print(circle[30,30])
+##    print(len(circle))
+##    print(len(circle[0]))
+##    mask_circle[circle]=0
     
     output= input*mask_circle
     
@@ -49,7 +61,7 @@ def cart2pol(input):
     binarySpect = np.zeros((len(input),len(input[0])))
     
     angle = np.zeros((360,1))
-    thrsh = 220
+    thrsh = 200
     
     for i in range (0,len(input)):
         for j in range (0,len(input[0])):
