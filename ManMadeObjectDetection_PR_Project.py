@@ -1,11 +1,25 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[7]:
+
+
 import cv2
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 from scipy import fftpack
+from shutil import copyfile
+import time
+import os
+
+
+# In[8]:
+
+
 
 def readImage(image_name):
-    image = Image.open(image_name)
+    image = cv2.imread(image_name)
     return image
 ##
 
@@ -107,32 +121,65 @@ def DEV_drawGui(original_image, fft, result_image):
     return 1
 ##
 
+
+# In[9]:
+
+
+
 def main():
-    image_name = "house.png"
-    original_image = readImage(image_name)
-    channels = original_image.split()
+    directory='Dataset/NaturalScenesTrain'
+#    filename='10.ppm'    
+#    image_name = filename
+#    print(filename)
+#    original_image = readImage(image_name)
+        
+#    result_array = np.zeros_like(original_image)
     
-    result_array = np.zeros_like(original_image)
+#    gray_img = cv2.cvtColor(np.array(original_image), cv2.COLOR_BGR2GRAY)
+#    result_array = fft(gray_img)
+#    result_image = Image.fromarray(result_array)
+        
+#    binary_image = Image.fromarray(cart2pol(result_array,filename))
     
-    gray_img = cv2.cvtColor(np.array(original_image), cv2.COLOR_BGR2GRAY)
-    result_array = fft(gray_img)
-    result_image = Image.fromarray(result_array)
+#    DEV_drawGui(original_image, binary_image)
+    start=time.time()
     
-    #binary_image = Image.fromarray(cart2pol(result_array))
+    for filename in os.listdir(directory):
+        copyfile(directory+'/'+filename, filename)
+        #filename='3.ppm'    
+        image_name = filename
+        print('Reading...:'+filename)
+        original_image = readImage(image_name)
+        
+        result_array = np.zeros_like(original_image)
     
-    angles, binary_image = cart2pol(result_array)
-    filteredAngles = meanFilterHistogram(angles,7)
+        gray_img = cv2.cvtColor(np.array(original_image), cv2.COLOR_BGR2GRAY)
+        result_array = fft(gray_img)
+        result_image = Image.fromarray(result_array)
+        
+        angles, binary_image = cart2pol(result_array)
+        filteredAngles = meanFilterHistogram(angles,7)
     
     
     
-    plt.plot(angles)
-    plt.show()
-    plt.plot(filteredAngles)
-    plt.show()
+        plt.plot(angles)
+        plt.show()
+        plt.plot(filteredAngles)
+        plt.savefig(filename+'_hist'+'.png')
+        plt.show()
     
-    DEV_drawGui(original_image, result_image, Image.fromarray(binary_image))
-    
+        DEV_drawGui(original_image, result_image, Image.fromarray(binary_image))
+        os.remove(filename) 
+    end=time.time()
+    print('Execution_time: %f'%(end-start))
     return 1
 ##
 
 main()
+
+
+# In[ ]:
+
+
+
+
