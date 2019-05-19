@@ -39,7 +39,7 @@ def highPassFilter(input):
     
     rows, cols = len(input), len(input[0])
     center_row, center_col = int(rows/2), int(cols/2)
-    sigma = 20
+    sigma = int(len(input)*0.04)
     
     mask_circle = np.ones((rows,cols), np.uint8)
 
@@ -76,7 +76,7 @@ def cart2pol(input):
     binarySpect = np.zeros((len(input),len(input[0])))
     
     angle = np.zeros((360,1))
-    thrsh = 200
+    thrsh = np.amax(input)*0.8
     
     for i in range (0,len(input)):
         for j in range (0,len(input[0])):

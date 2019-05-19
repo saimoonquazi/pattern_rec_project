@@ -8,7 +8,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 def randomForestClas(train_features, train_labels, test_features, test_labels):
     random_forest = RandomForestClassifier(n_estimators=100, max_depth=2,random_state=0)
     random_forest.fit(train_features, train_labels.ravel())
-    scores = cross_val_score(random_forest,test_features, train_labels.ravel(), cv=10)
+    scores = cross_val_score(random_forest,test_features, test_labels.ravel(), cv=10)
     print(" Accuracy = ", scores.sum()/len(scores))
     return 1
 ##
@@ -23,11 +23,12 @@ def lda(train_features,train_labels, test_features):
 ##
 
 def x10crossValidation(data):
-    for i in range(1,10):
+    for i in range(0,10):
         data_split = i/10
-        samples_higher_thr = int(len(data) * i+1/10)
+        samples_higher_thr = int(len(data) * (i+1)/10)
         samples_lower_thr = int(len(data) * (i)/10)
-        
+        print(samples_higher_thr)
+        print(samples_lower_thr)
         if i != 0:
             train_data = np.concatenate((np.array(data[0:samples_lower_thr,:]), data[samples_higher_thr+1:len(data),:]), axis=0)
         else:
@@ -43,7 +44,7 @@ def x10crossValidation(data):
         
         lda_train_set, lda_test_set = lda(train_features, train_labels, test_features)
         
-        #randomForestClas(train_features, train_labels, test_features, test_labels)
+        randomForestClas(train_features, train_labels, test_features, test_labels)
     ##
     return 1
 ##
