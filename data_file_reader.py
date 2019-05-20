@@ -11,7 +11,7 @@ import numpy as np
 
 # In[51]:
 
-def file_reader():
+def file_reader(filename):
     #Open the data file
     csv.register_dialect('myDialect',
     delimiter = '\t',
@@ -19,7 +19,7 @@ def file_reader():
 
     #Read data and store the data
     data_table = []
-    with open('features.csv', 'r') as csvFile:
+    with open(filename, 'r') as csvFile:
         reader = csv.reader(csvFile, dialect='myDialect')
         data_table = list(reader)
     csvFile.close()

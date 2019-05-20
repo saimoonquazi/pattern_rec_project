@@ -3,7 +3,7 @@
 
 # Importing Relevant Libraries
 
-# In[ ]:
+# In[2]:
 
 
 import csv
@@ -24,16 +24,17 @@ import data_file_reader
 
 # Calling File reader and splitting train and test set from the overall data
 
-# In[9]:
+# In[3]:
 
 
-data,features,labels=data_file_reader.file_reader()
+filename='features_train.csv'
+data,features,labels=data_file_reader.file_reader(filename)
 train_data_features, test_data_features, train_data_labels, test_data_labels = train_test_split(features, labels, test_size=0.2, random_state=10)
 
 
 # Defining the classifiers to be used
 
-# In[10]:
+# In[4]:
 
 
 svc=SVC(kernel='linear', C=1)
@@ -44,7 +45,7 @@ mv=VotingClassifier(estimators=[('rf', rf),('knn',knn),('svc',svc)], voting='har
 
 # Performing cross validation on the classfiers to gauge performance
 
-# In[12]:
+# In[5]:
 
 
 cv_scores_svc=cross_val_score(svc, train_data_features,np.ravel(train_data_labels), cv=10)
@@ -68,9 +69,20 @@ std_crossval_mv=cv_scores_mv.std()*2
 print('The Accuracy of the Majority Voting Classifier with 10-fold Cross Validation is : %f'%accur_crossval_mv+'%'+' (+/- %0.2f)'%std_crossval_mv)
 
 
+# Test Accuracy
+
+# In[12]:
+
+
+rf_clf=rf.fit(train_data_features,np.ravel(train_data_labels))
+prediction_rf=rf_lda.predict(test_data_features)
+rf_score=accuracy_score(test_data_labels,prediction_rf)
+print('The Random Forest Classifier Accuracy is: %f'%(rf_score*100)+'%')
+
+
 # Following are two procedures to perform PCA and LDA on the data to perform feature reduction. 
 
-# In[ ]:
+# In[6]:
 
 
 # Scale the input data (Good Practice when performing PCA)
@@ -79,16 +91,36 @@ train_set=sc.fit_transform(train_data_features)
 test_set=sc.fit_transform(test_data_features)
 
 #Perform PCA on the input data reducing the input from 4 dimensions to 2 dimensions
-pca=PCA(n_components=40)
+pca=PCA(n_components=80)
 pca_train_set= pca.fit_transform(train_set) 
 pca_test_set=pca.fit_transform(test_set)
 print(pca.explained_variance_ratio_)  
 
 
+# In[16]:
+
+
+rf_pca=rf.fit(pca_train_set,np.ravel(train_data_labels))
+prediction_pca=rf_pca.predict(pca_test_set)
+rf_pca_score=accuracy_score(test_data_labels,prediction_pca)
+print('The Random Forest Classifier Accuracy with PCA is: %f'%(rf_pca_score*100)+'%')
+
+
+# In[17]:
+
+
+lda=LDA(n_components=200)
+lda_train_set=lda.fit_transform(train_data_features,np.ravel(train_data_labels))
+lda_test_set = lda.transform(test_data_features)
+
+rf_lda=rf.fit(lda_train_set,np.ravel(train_data_labels))
+prediction_lda=rf_lda.predict(lda_test_set)
+rf_lda_score=accuracy_score(test_data_labels,prediction_lda)
+print('The Random Forest Classifier Accuracy with LDA is: %f'%(rf_lda_score*100)+'%')
+
+
 # In[ ]:
 
 
-lda=LDA(n_components=20)
-lda_train_set=lda.fit_transform(train_data_features,np.ravel(train_data_labels))
-lda_test_set = lda.transform(test_data_features)
+
 
