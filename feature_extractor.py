@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[12]:
+# In[1]:
 
 
 import cv2
@@ -15,7 +15,7 @@ import os
 import csv
 
 
-# In[31]:
+# In[2]:
 
 
 
@@ -123,12 +123,12 @@ def DEV_drawGui(original_image, fft, result_image):
 ##
 
 
-# In[ ]:
+# In[3]:
 
 
 
-def main():
-    directory='Dataset/NaturalScenesTrain'
+def train_data_gen(directory):
+    #directory='Dataset/ManMadeScenesTrain'
 #    filename='10.ppm'    
 #    image_name = filename
 #    print(filename)
@@ -161,7 +161,7 @@ def main():
         angles, binary_image = cart2pol(result_array)
         
         filteredAngles = meanFilterHistogram(angles,7)  
-        label=np.array([0])
+        label=np.array([1])
     #print(label.shape)
     #print(filteredAngles.T.shape)
     
@@ -170,8 +170,8 @@ def main():
     
         
         
-        with open('features.csv', 'a') as csvFile:
-            writer = csv.writer(csvFile)
+        with open('features_train.csv', 'a') as csvFile:
+            writer = csv.writer(csvFile,delimiter ='\t')
 #        writer.writerows(map(lambda x: [x], feature_print.T))
             writer.writerows(feature_print.T)
         csvFile.close()
@@ -189,7 +189,51 @@ def main():
     return 1
 ##
 
-main()
+#main()
+
+
+# In[7]:
+
+
+def extract_features_prediction(filename):
+    #directory='Dataset/ManMadeScenesTrain' 
+    image_name = filename
+    print(filename)
+    original_image = readImage(image_name)
+        
+    result_array = np.zeros_like(original_image)
+    
+    gray_img = cv2.cvtColor(np.array(original_image), cv2.COLOR_BGR2GRAY)
+    result_array = fft(gray_img)
+    result_image = Image.fromarray(result_array)
+        
+    angles, binary_image = cart2pol(result_array)
+        
+    filteredAngles = meanFilterHistogram(angles,7)  
+    #label=np.array([1])
+    #print(label.shape)
+    #print(filteredAngles.T.shape)
+    
+    #feature_print=np.concatenate((label,np.ravel(filteredAngles)))
+    #feature_print=feature_print.reshape((361,1))
+    
+    DEV_drawGui(original_image, result_image, Image.fromarray(binary_image))
+    
+    with open('features_test.csv', 'a') as csvFile:
+        writer = csv.writer(csvFile,delimiter ='\t')
+#       writer.writerows(map(lambda x: [x], feature_print.T))
+        writer.writerows(filteredAngles.T)
+        csvFile.close()
+        
+    plt.plot(angles)
+    plt.show()
+    plt.plot(filteredAngles)
+    plt.savefig(filename+'_hist'+'.png')
+    plt.show()
+    return 1
+##
+
+#main()
 
 
 # In[ ]:

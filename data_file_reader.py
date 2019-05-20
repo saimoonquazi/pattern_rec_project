@@ -11,7 +11,7 @@ import numpy as np
 
 # In[51]:
 
-def file_reader(filename):
+def file_reader(filename,train_test):
     #Open the data file
     csv.register_dialect('myDialect',
     delimiter = '\t',
@@ -30,10 +30,16 @@ def file_reader(filename):
         tmp = data_table[i]
         for j in range(0,len(tmp)):
             data[i,j] = float(tmp[j])
-    np.random.shuffle(data)
+    if(train_test=='train'):
+        np.random.shuffle(data)
 
-    features=data[:,1:]
-    labels=data[:,[0]]
+        features=data[:,1:]
+        labels=data[:,[0]]
+    else:
+        features=data
+        labels=None
+    
+        
     
     return data, features, labels
 ##
