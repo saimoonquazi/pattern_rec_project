@@ -21,6 +21,9 @@ from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 import data_file_reader
 
+from sklearn.decomposition import FastICA
+from sklearn.datasets import load_digits
+
 
 # Calling File reader and splitting train and test set from the overall data
 
@@ -41,7 +44,7 @@ svc=SVC(kernel='linear', C=1)
 rf=RandomForestClassifier(n_estimators=50, random_state=1)
 knn=KNeighborsClassifier(n_neighbors=3)
 mv=VotingClassifier(estimators=[('rf', rf),('knn',knn),('svc',svc)], voting='hard')
-
+print(mv)
 
 # Performing cross validation on the classfiers to gauge performance
 
@@ -75,7 +78,7 @@ print('The Accuracy of the Majority Voting Classifier with 10-fold Cross Validat
 
 
 rf_clf=rf.fit(train_data_features,np.ravel(train_data_labels))
-prediction_rf=rf_lda.predict(test_data_features)
+prediction_rf=rf_clf.predict(test_data_features)
 rf_score=accuracy_score(test_data_labels,prediction_rf)
 print('The Random Forest Classifier Accuracy is: %f'%(rf_score*100)+'%')
 
@@ -94,7 +97,7 @@ test_set=sc.fit_transform(test_data_features)
 pca=PCA(n_components=80)
 pca_train_set= pca.fit_transform(train_set) 
 pca_test_set=pca.fit_transform(test_set)
-print(pca.explained_variance_ratio_)  
+print(pca.explained_variance_ratio_)
 
 
 # In[16]:
@@ -121,6 +124,41 @@ print('The Random Forest Classifier Accuracy with LDA is: %f'%(rf_lda_score*100)
 
 # In[ ]:
 
+# FastICA
+
+ica =  FastICA(n_components=320,random_state=0)
+ica_train_set=ica.fit_transform(train_data_features,np.ravel(train_data_labels))
+ica_test_set = ica.transform(test_data_features)
+
+svc_ica=svc.fit(ica_train_set,np.ravel(train_data_labels))
+prediction_svc_ica=svc_ica.predict(ica_test_set)
+svc_ica_score=accuracy_score(test_data_labels,prediction_svc_ica)
+print('The Support Vector Machine Classifier Accuracy with FastICA is: %f'%(svc_ica_score*100)+'%')
+
+cv_scores_svc_ica=cross_val_score(svc, ica_train_set,np.ravel(train_data_labels), cv=10)
+accur_crossval_svc_ica=cv_scores_svc_ica.mean()*100
+std_crossval_svc_ica=cv_scores_svc_ica.std()*2
+print('The Accuracy of the Support Vector Machine Classifier + ICA with 10-fold Cross Validation is : %f'%accur_crossval_svc_ica+'%'+' (+/- %0.2f)'%std_crossval_svc_ica)
+
+rf_ica=rf.fit(ica_train_set,np.ravel(train_data_labels))
+prediction_rf_ica=rf_ica.predict(ica_test_set)
+rf_ica_score=accuracy_score(test_data_labels,prediction_rf_ica)
+print('The Random Forest Classifier Accuracy with FastICA is: %f'%(rf_ica_score*100)+'%')
+
+cv_scores_rf_ica=cross_val_score(rf, ica_train_set,np.ravel(train_data_labels), cv=10)
+accur_crossval_rf_ica=cv_scores_rf_ica.mean()*100
+std_crossval_rf_ica=cv_scores_rf_ica.std()*2
+print('The Accuracy of the Random Forest Classifier + ICA with 10-fold Cross Validation is : %f'%accur_crossval_rf_ica+'%'+' (+/- %0.2f)'%std_crossval_rf_ica)
+
+knn_ica=knn.fit(ica_train_set,np.ravel(train_data_labels))
+prediction_knn_ica=knn_ica.predict(ica_test_set)
+knn_ica_score=accuracy_score(test_data_labels,prediction_knn_ica)
+print('The K-Nearest Neighbour Classifier Accuracy with FastICA is: %f'%(knn_ica_score*100)+'%')
+
+cv_scores_knn_ica=cross_val_score(knn, train_data_features,np.ravel(train_data_labels), cv=20)
+accur_crossval_knn_ica=cv_scores_knn_ica.mean()*100
+std_crossval_knn_ica=cv_scores_knn_ica.std()*200
+print('The Accuracy of the K-Nearest Neighbour Classifier + ICA with 10-fold Cross Validation is : %f'%accur_crossval_knn_ica+'%'+' (+/- %0.2f)'%std_crossval_knn_ica)
 
 
 
