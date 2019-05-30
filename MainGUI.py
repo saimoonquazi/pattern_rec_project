@@ -1,23 +1,6 @@
 ####################################################################################################################################
 #
-# Final Analysis: The Tkinter library provides a decent platform to create useful GUI's but compared to other python frameworks
-#                 such as PyQt, I found it a bit clunky to use this platform. But it was good to learn the way images are handled
-#                 in this framework.
-#                 To implement the noise applications, a few reusable functions were created and called under the buttons. The
-#                 grayscale conversion was done using co-efficent defined in the lecture notes. The binary conversion was quite 
-#                 trivial. To add functionality, a simple dialog-box was added to prompt the user to enter the threshold value
-#                 to be used for the binary conversion.
-#                 The addition of gaussian noise was similar to what was implemented in the previous lab, but functionality was 
-#                 extended to apply the noise on all channels for RGB images. The function worked as expected and the level of  
-#                 noise could also be added via a simple dialog-box. The Salt and Pepper addition was bit trickier but was done
-#                 by raising random co-ordinates to either 255 or to 0. The number of co-ordinates in use woul be supplied by the 
-#                 user. 
-#                 Application of median filter was quite straightforward and simple. The filter works great for Salt and Pepper 
-#                 noise but has a difficult tie dealing with multi-channel noise (such as RGB gaussing noise). 
-#                 Low-Pass Filter was generally easy to implement, and does practically the same thing as seen in the previous 
-#                 practical. For ease of use, the image is converted to grayscale before performing the Low-pass filter operations. 
-#                 The output of the low-pass filter looks worse here compared to matplots. The high pass filter is also functional
-#                 and the output is as exected. However, just like the Low-Pass Filter, the output looks better in Matplot.                   
+# Description: This GUI was developed in an attempt to create an interactive portal to display the functionality of the classification #              developed during the course of this project. Tkinter was used for the development of the GUI with minimalistic          #              functionality.                
 #
 #####################################################################################################################################
 
@@ -45,7 +28,8 @@ class Assignment(tk.Frame):
         self.label_imgtype.destroy()
         plt.close('all')
         self.original_image,self.result_image, self.binary_image,self.filtered_image=feature_extractor_GUI.extract_features_prediction(self.filename)
-        feature_extractor_GUI.DEV_drawGui(self.original_image, self.result_image, self.binary_image)                                                                                                       #Uncheck all the checkboxes
+        self.original_image=cv2.cvtColor(self.original_image, cv2.COLOR_BGR2RGB)
+        feature_extractor_GUI.DEV_drawGui(self.original_image, self.result_image, self.binary_image)                                                                                                      
         plt.figure(2)
         plt.plot(self.filtered_image)
         plt.xlabel('Angles(deg)')
@@ -54,25 +38,28 @@ class Assignment(tk.Frame):
         plt.title('Histogram of Filtered Image with Angle Calculation')
         plt.show()
         self.label_imgtype = tk.Label(root, text="Features Extracted Successfully")              
-        self.label_imgtype.config(font=("Times New Roman", 14))                                                         #Configure font and size of label
+        self.label_imgtype.config(font=("Times New Roman", 14))                                                        
         self.label_imgtype.grid(row=5, columnspan=2) 
+        self.feature_extraction_flag=True
     def browse(self):    
         self.label_imgtype.destroy()
         self.filename = filedialog.askopenfilename()
-        #Open dialog box to select image
-        self.img = cv2.imread(self.filename, 1)                                                                         #Use OpenCV to read the image file
-        self.b, self.g, self.r = cv2.split(self.img)                                                                    #Split the channels 
-        self.img1 = cv2.merge((self.r, self.g, self.b))                                                                 #repackage as RGB
-        self.img2 = Image.fromarray(self.img1)                                                                          #Create image from array    
-        self.img = self.img2.resize((512,512))                                                                          #Resize image to fit canvas size
-        self.canvas.image = ImageTk.PhotoImage(self.img)                                                                #Save adjusted image as PhotoImage                   
-        self.canvas.create_image(0, 0, image=self.canvas.image, anchor='nw')                                            #Draw image onto specified canvas
-        self.label_imgtype = tk.Label(root, text="The Image Loaded, Features not Extracted")                                            #Display Corresponding label describing image conversion
-        self.label_imgtype.config(font=("Times New Roman", 14))                                                         #Configure font and size of label
-        self.label_imgtype.grid(row=5, columnspan=2)                                                                    #Specify position of label
+        self.img = cv2.imread(self.filename, 1)                                                                         
+        self.b, self.g, self.r = cv2.split(self.img)                                                                    
+        self.img1 = cv2.merge((self.r, self.g, self.b))                                                                 
+        self.img2 = Image.fromarray(self.img1)                                                                          
+        self.img = self.img2.resize((512,512))                                                                          
+        self.canvas.image = ImageTk.PhotoImage(self.img)                                                                
+        self.canvas.create_image(0, 0, image=self.canvas.image, anchor='nw')                                            
+        self.label_imgtype = tk.Label(root, text="The Image Loaded, Features not Extracted")                                            
+        self.label_imgtype.config(font=("Times New Roman", 14))                                                         
+        self.label_imgtype.grid(row=5, columnspan=2)                                                                    
         
     def classify(self):
-        #Implementation of the Low-Pass Filter
+        #Check if feature extraction has been done, if not run the function
+        if self.feature_extraction_flag is False:
+            self.Apply()
+        #Check if the model has been trained or not, if not train the model
         self.result_label.destroy() 
         if self.train_flag is False:
             self.model_train()
@@ -81,19 +68,16 @@ class Assignment(tk.Frame):
         lda_test_set = self.lda.transform(predict_features)
         prediction=self.clf.predict(lda_test_set)
         if prediction==0:
-            self.result_label = tk.Label(root, text="The Image Contains a Natural Scene",wraplength=200)                                              #Display Corresponding label describing image conversion   
+            self.result_label = tk.Label(root, text="The Image Contains a Natural Scene",wraplength=200)                                                 
             print('The Image Contains a Natural Scene')
         else:
-            self.result_label = tk.Label(root, text="The Image Contains Man Made Objects in the Scene",wraplength=200)                                              #Display Corresponding label describing image conversion
+            self.result_label = tk.Label(root, text="The Image Contains Man Made Objects in the Scene",wraplength=200)                                              
             print('The Image Contains Man Made Objects in the Scene')
-        self.result_label.config(font=("Times New Roman", 14))                                                           #Configure font and size of label
-#        self.result_label.grid(row=10, column=8)
+        self.result_label.config(font=("Times New Roman", 14))                                                           
         self.result_label.place(relx=0.7, rely=0.45, anchor='sw')            
 
     def model_train(self):
-        #Implementation of the High Pass Filter
-
-        self.label_training_state.destroy()                                                                                      #Delete Current Label above image
+        self.label_training_state.destroy()                                                                                      
         filename='features_train.csv'
         data,features,labels=data_file_reader.file_reader(filename,'train')
         self.svc=SVC(kernel='linear', C=1)
@@ -114,15 +98,16 @@ class Assignment(tk.Frame):
         else:
             self.clf=self.rf.fit(lda_train_set,np.ravel(labels))     
             classifier_label="Model Trained Successfully on Random Forest"
-        self.label_training_state = tk.Label(root, text=classifier_label,wraplength=200)                                              #Display Corresponding label describing image conversion
-        self.label_training_state.config(font=("Times New Roman", 12))                                                           #Configure font and size of label
+        self.label_training_state = tk.Label(root, text=classifier_label,wraplength=200)                                              
+        self.label_training_state.config(font=("Times New Roman", 12))                                                           
         self.label_training_state.grid(row=6, column=8) 
-        self.train_flag=True                                                                     #Specify position of label
+        self.train_flag=True                                                                     
 
 
     def __init__(self, root):
         tk.Frame.__init__(self, root)
         self.train_flag=False
+        self.feature_extraction_flag=False
         # BROWSE
         self.btn_browse = tk.Button(root, text="Browse", command=self.browse)
         self.btn_browse.grid(row=0, column=0)
@@ -131,11 +116,11 @@ class Assignment(tk.Frame):
         self.btn_feature_extract = tk.Button(root, text="Extract Features", command=self.Apply)
         self.btn_feature_extract.grid(row=0, column=1)
 
-        # Low-pass Filter
+        # Classify Image
         self.btn_classify = tk.Button(root, text="Classify Image", command=self.classify)
         self.btn_classify.grid(row=5, column=5)
 
-        # High-pass Filter
+        # Train Model
         self.model_train_btn = tk.Button(root, text="Train Model", command=self.model_train)
         self.model_train_btn.grid(row=5, column=8)
 
@@ -146,25 +131,23 @@ class Assignment(tk.Frame):
         self.canvas.grid(row=10, columns=10)
         
         self.label_imgtype = tk.Label(root, text="No Image Loaded")              
-        self.label_imgtype.config(font=("Times New Roman", 14))                                                         #Configure font and size of label
+        self.label_imgtype.config(font=("Times New Roman", 14))                                                         
         self.label_imgtype.grid(row=5, columnspan=2) 
 
-        # SLIDER BRIGHTNESS
+        # Labels
         self.label_training_state = tk.Label(root, text="Not Trained")
         self.label_training_state.grid(row=6, column=8)
         self.result_label = tk.Label(root, text="No Classification")
         self.result_label.config(font=("Times New Roman", 14))  
         self.result_label.place(relx=0.7, rely=0.4, anchor='sw')
-        #self.result_label.grid(row=10, column=8)
         self.course_label = tk.Label(root, text="Pattern Recognition (LOTI.05.046)")
         self.course_label.config(font=("Times New Roman", 16))  
-        self.course_label.place(relx=0.34, rely=0.97, anchor='sw')
+        self.course_label.place(relx=0.34, rely=0.92, anchor='sw')
         self.title_label = tk.Label(root, text="Man made object detection in natural scenes")
         self.title_label.config(font=("Times New Roman", 16))  
-        self.title_label.place(relx=0.3, rely=1, anchor='sw')
+        self.title_label.place(relx=0.3, rely=0.95, anchor='sw')
         self.classifier_label = tk.Label(root, text="Choose Classifier")
         self.classifier_label.grid(row=0, column=8)
-        
         self.comboExample = ttk.Combobox(root, 
                             values=[
                                     "SVC", 
@@ -174,12 +157,12 @@ class Assignment(tk.Frame):
         self.comboExample.grid(column=8, row=1)
         self.comboExample.current(3)
         
-        self.logo = cv2.imread('tartu_logo.jpg', 1)                                                                         #Use OpenCV to read the image file
-        self.b, self.g, self.r = cv2.split(self.logo)                                                                    #Split the channels 
-        self.logo1 = cv2.merge((self.r, self.g, self.b))                                                                 #repackage as RGB
-        self.logo2 = Image.fromarray(self.logo1)                                                                          #Create image from array    
-        self.logo = self.logo2.resize((180,180))                                                                          #Resize image to fit canvas size
-        self.canvas.image_logo = ImageTk.PhotoImage(self.logo)                                                                #Save adjusted image as PhotoImage                   
+        self.logo = cv2.imread('tartu_logo.jpg', 1)
+        self.b, self.g, self.r = cv2.split(self.logo)                                                                     
+        self.logo1 = cv2.merge((self.r, self.g, self.b))                                                                 
+        self.logo2 = Image.fromarray(self.logo1)                                                                          
+        self.logo = self.logo2.resize((180,180))                                                                          
+        self.canvas.image_logo = ImageTk.PhotoImage(self.logo)                                                                                
         self.canvas.create_image(0, 540, image=self.canvas.image_logo, anchor='nw')
 
 

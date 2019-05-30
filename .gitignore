@@ -1,1 +1,8 @@
 Dataset/
+Histograms/
+Cache/
+Report Materials/
+*.jpg
+*.png
+*.ppm
+*.jpeg
